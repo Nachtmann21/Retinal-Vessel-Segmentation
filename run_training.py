@@ -4,49 +4,53 @@
 #
 ##################################################
 
-import os, sys
+import os
+import sys
 import configparser
+import time
+import subprocess  # Import subprocess for better command execution
 
 start = time.time()
-config_name = None
-if len(sys.argv) == 2:
-    config_name = sys.argv[1]
-else:
-    print("Wrong Augment!")
+
+# Check for argument
+if len(sys.argv) != 2:
+    print("Usage: python3 run_training.py <configuration_file>")
     exit(1)
 
 # config file to read from
+config_name = sys.argv[1]
 config = configparser.RawConfigParser()
-config.readfp(open(r'./' + config_name))
-# ===========================================
-# name of the experiment
-name_experiment = config.get('experiment name', 'name')
-nohup = config.getboolean('training settings', 'nohup')   #std output on log file?
 
+# Read the configuration file
+with open(config_name, 'r') as config_file:
+    config.read_file(config_file)
+
+# ===========================================
+# Name of the experiment
+name_experiment = config.get('experiment name', 'name')
+nohup = config.getboolean('training settings', 'nohup')  # std output on log file?
+
+# Setting GPU flags for non-Windows platforms
 run_GPU = '' if sys.platform == 'win32' else ' THEANO_FLAGS=device=gpu,floatX=float32 '
 
-# create a folder for the results
+# Create a folder for the results
 result_dir = name_experiment
 print("\n1. Create directory for the results (if not already existing)")
-if os.path.exists(result_dir):
-    print("Dir already existing")
-elif sys.platform=='win32':
-    os.system('mkdir ' + result_dir)
-else:
-    os.system('mkdir -p ' +result_dir)
+os.makedirs(result_dir, exist_ok=True)  # Create directory if it does not exist
 
-print("copy the configuration file in the results folder")
-if sys.platform=='win32':
-    os.system('copy configuration.txt .\\' +name_experiment+'\\'+name_experiment+'_configuration.txt')
+# Copy the configuration file to the results folder
+print("Copying the configuration file to the results folder")
+if sys.platform == 'win32':
+    subprocess.run(['copy', config_name, f'.\\{name_experiment}\\{name_experiment}_configuration.txt'], shell=True)
 else:
-    os.system('cp configuration.txt ./' +name_experiment+'/'+name_experiment+'_configuration.txt')
+    subprocess.run(['cp', config_name, f'./{name_experiment}/{name_experiment}_configuration.txt'])
 
-# run the experiment
+# Run the experiment with the configuration file as an argument
 if nohup:
     print("\n2. Run the training on GPU with nohup")
-    os.system(run_GPU +' nohup python -u ./src/retina_unet_training.py > ' +'./'+name_experiment+'/'+name_experiment+'_training.nohup')
+    subprocess.run(f'{run_GPU} nohup python3 -u ./src/retina_unet_training.py {config_name} > ./{name_experiment}/{name_experiment}_training.nohup', shell=True)
 else:
     print("\n2. Run the training on GPU (no nohup)")
-    os.system(run_GPU +' python ./src/retina_unet_training.py')
+    subprocess.run(f'{run_GPU} python3 ./src/retina_unet_training.py {config_name}', shell=True)
 
-# Prediction/testing is run with a different script
+print("Training script has been executed.")

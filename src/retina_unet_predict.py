@@ -21,7 +21,7 @@ from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import precision_recall_curve
-from sklearn.metrics import jaccard_similarity_score
+from sklearn.metrics import jaccard_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import accuracy_score
 
@@ -38,7 +38,7 @@ from extract_patches import get_data_testing
 from extract_patches import get_data_testing_overlap
 # pre_processing.py
 from pre_processing import my_PreProc
-from nn_models_v2 import get_unet
+# from nn_models_v2 import get_unet
 
 config_name = None
 if len(sys.argv) == 2:
@@ -46,6 +46,8 @@ if len(sys.argv) == 2:
 else:
     print("Wrong Augment!")
     exit(1)
+
+
 # ========= CONFIG FILE TO READ FROM =======
 config = configparser.RawConfigParser()
 config.read('./' + config_name)
@@ -77,6 +79,8 @@ Imgs_to_test = int(config.get('testing settings', 'full_images_to_test'))
 N_visual = int(config.get('testing settings', 'N_group_visual'))
 # ====== average mode ===========
 average_mode = config.getboolean('testing settings', 'average_mode')
+
+print("Loaded sections:", config.sections())
 
 datasets = {'DRIVE', 'STARE', 'CHASE'}
 dataset_name = config.get('data paths', 'dataset_name')
@@ -294,7 +298,7 @@ if float(confusion[1,1]+confusion[0,1])!=0:
 print("Precision: " +str(precision))
 
 #Jaccard similarity index
-jaccard_index = jaccard_similarity_score(y_true, y_pred, normalize=True)
+jaccard_index = jaccard_score(y_true, y_pred)
 print("\nJaccard similarity score: " +str(jaccard_index))
 
 #F1 score
