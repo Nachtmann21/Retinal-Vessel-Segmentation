@@ -1,5 +1,5 @@
 [data paths]
-path_local =  ./CHASE_datasets_training_testing_2/
+path_local =  ./CHASE_datasets_training_testing/
 train_imgs_original = CHASE_dataset_img_train.hdf5
 train_groundTruth = CHASE_dataset_groundTruth_train.hdf5
 train_border_masks = CHASE_dataset_mask_train.hdf5
