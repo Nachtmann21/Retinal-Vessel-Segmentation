@@ -8,14 +8,14 @@ from pre_processing import my_PreProc
 # random.seed(10)
 
 # Load the original data and return the extracted patches for training/testing
-def get_data_training(DRIVE_train_imgs_original,
-                      DRIVE_train_groudTruth,
+def get_data_training(chase_train_imgs_original,
+                      chase_train_groudTruth,
                       patch_height,
                       patch_width,
                       N_subimgs,
                       inside_FOV):
-    train_imgs_original = load_hdf5(DRIVE_train_imgs_original)
-    train_masks = load_hdf5(DRIVE_train_groudTruth)  # masks always the same
+    train_imgs_original = load_hdf5(chase_train_imgs_original)
+    train_masks = load_hdf5(chase_train_groudTruth)  # masks always the same
     # visualize(group_images(train_imgs_original[0:20,:,:,:],5),'imgs_train')#.show()  #check original imgs train
 
     train_imgs = my_PreProc(train_imgs_original)
@@ -53,7 +53,7 @@ def get_data_training_rotate(train_imgs_original,
                              patch_width,
                              N_subimgs,
                              inside_FOV,
-                             dataset='DRIVE'):
+                             dataset='CHASE'):
     train_imgs_original = load_hdf5(train_imgs_original)
     train_masks = load_hdf5(train_groudTruth)  # masks always the same
     # visualize(group_images(train_imgs_original[0:20,:,:,:],5),'imgs_train')#.show()  #check original imgs train
@@ -151,10 +151,10 @@ def extract_random_rotate(full_imgs, full_masks, patch_h, patch_w, N_patches, in
 
 
 # Load the original data and return the extracted patches for training/testing
-def get_data_testing(DRIVE_test_imgs_original, DRIVE_test_groudTruth, Imgs_to_test, patch_height, patch_width):
+def get_data_testing(chase_test_imgs_original, chase_test_groudTruth, Imgs_to_test, patch_height, patch_width):
     ### test
-    test_imgs_original = load_hdf5(DRIVE_test_imgs_original)
-    test_masks = load_hdf5(DRIVE_test_groudTruth)
+    test_imgs_original = load_hdf5(chase_test_imgs_original)
+    test_masks = load_hdf5(chase_test_groudTruth)
 
     test_imgs = my_PreProc(test_imgs_original)
     test_masks = test_masks / 255.
@@ -190,11 +190,11 @@ def get_data_testing(DRIVE_test_imgs_original, DRIVE_test_groudTruth, Imgs_to_te
 
 # Load the original data and return the extracted patches for testing
 # return the ground truth in its original shape
-def get_data_testing_overlap(DRIVE_test_imgs_original, DRIVE_test_groudTruth, Imgs_to_test, patch_height, patch_width,
+def get_data_testing_overlap(chase_test_imgs_original, chase_test_groudTruth, Imgs_to_test, patch_height, patch_width,
                              stride_height, stride_width):
     ### test
-    test_imgs_original = load_hdf5(DRIVE_test_imgs_original)
-    test_masks = load_hdf5(DRIVE_test_groudTruth)
+    test_imgs_original = load_hdf5(chase_test_imgs_original)
+    test_masks = load_hdf5(chase_test_groudTruth)
 
     test_imgs = my_PreProc(test_imgs_original)
     test_masks = test_masks / 255.

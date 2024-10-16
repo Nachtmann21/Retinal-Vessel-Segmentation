@@ -111,8 +111,8 @@ masks_test  = None
 patches_masks_test = None
 if average_mode == True:
     patches_imgs_test, new_height, new_width, masks_test = get_data_testing_overlap(
-        DRIVE_test_imgs_original = test_imgs_original,  #original
-        DRIVE_test_groudTruth = path_data + config.get('data paths', 'test_groundTruth'),  #masks
+        chase_test_imgs_original= test_imgs_original,  #original
+        chase_test_groudTruth=path_data + config.get('data paths', 'test_groundTruth'),  #masks
         Imgs_to_test = int(config.get('testing settings', 'full_images_to_test')),
         patch_height = patch_height,
         patch_width = patch_width,
@@ -121,8 +121,8 @@ if average_mode == True:
     )
 else:
     patches_imgs_test, patches_masks_test = get_data_testing(
-        DRIVE_test_imgs_original = test_imgs_original,  #original
-        DRIVE_test_groudTruth = path_data + config.get('data paths', 'test_groundTruth'),  #masks
+        chase_test_imgs_original= test_imgs_original,  #original
+        chase_test_groudTruth=path_data + config.get('data paths', 'test_groundTruth'),  #masks
         Imgs_to_test = int(config.get('testing settings', 'full_images_to_test')),
         patch_height = patch_height,
         patch_width = patch_width,
