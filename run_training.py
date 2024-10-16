@@ -48,9 +48,11 @@ else:
 # Run the experiment with the configuration file as an argument
 if nohup:
     print("\n2. Run the training on GPU with nohup")
-    subprocess.run(f'{run_GPU} nohup python3 -u ./src/retina_unet_training.py {config_name} > ./{name_experiment}/{name_experiment}_training.nohup', shell=True)
+    subprocess.run(
+        f'{run_GPU} nohup python -u ./src/retina_unet_training.py {config_name} > ./{name_experiment}/{name_experiment}_training.nohup',
+        shell=True)
 else:
     print("\n2. Run the training on GPU (no nohup)")
-    subprocess.run(f'{run_GPU} python3 ./src/retina_unet_training.py {config_name}', shell=True)
+    subprocess.run(f'{run_GPU} python ./src/retina_unet_training.py {config_name}', shell=True)
 
 print("Training script has been executed.")
