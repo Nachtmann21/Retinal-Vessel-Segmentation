@@ -28,51 +28,85 @@ from tensorflow.keras.layers import Input, Conv2D, Dropout, MaxPooling2D, UpSamp
 from tensorflow.keras import Model
 import tensorflow.keras.layers as core
 
-
-def get_unet(n_ch, patch_height, patch_width):
+def get_unet_smaller(n_ch, patch_height, patch_width):
     inputs = Input(shape=(n_ch, patch_height, patch_width))
 
     # Encoding path
-    conv1 = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_first')(inputs)
+    conv1 = Conv2D(16, (3, 3), activation='relu', padding='same', data_format='channels_first')(inputs)  # Reduced filters
     conv1 = Dropout(0.2)(conv1)
-    conv1 = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_first')(conv1)
+    conv1 = Conv2D(16, (3, 3), activation='relu', padding='same', data_format='channels_first')(conv1)
     pool1 = MaxPooling2D((2, 2), data_format='channels_first')(conv1)
 
-    conv2 = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_first')(pool1)
+    conv2 = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_first')(pool1)
     conv2 = Dropout(0.2)(conv2)
-    conv2 = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_first')(conv2)
-    pool2 = MaxPooling2D((2, 2), data_format='channels_first')(conv2)
+    conv2 = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_first')(conv2)
 
-    conv3 = Conv2D(128, (3, 3), activation='relu', padding='same', data_format='channels_first')(pool2)
+    # Decoding path (fewer layers)
+    up1 = UpSampling2D(size=(2, 2), data_format='channels_first')(conv2)
+    up1 = concatenate([conv1, up1], axis=1)  # axis=1 for 'channels_first'
+    conv3 = Conv2D(16, (3, 3), activation='relu', padding='same', data_format='channels_first')(up1)
     conv3 = Dropout(0.2)(conv3)
-    conv3 = Conv2D(128, (3, 3), activation='relu', padding='same', data_format='channels_first')(conv3)
-
-    # Decoding path
-    up1 = UpSampling2D(size=(2, 2), data_format='channels_first')(conv3)
-    up1 = concatenate([conv2, up1], axis=1)  # axis=1 for 'channels_first'
-    conv4 = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_first')(up1)
-    conv4 = Dropout(0.2)(conv4)
-    conv4 = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_first')(conv4)
-
-    up2 = UpSampling2D(size=(2, 2), data_format='channels_first')(conv4)
-    up2 = concatenate([conv1, up2], axis=1)  # axis=1 for 'channels_first'
-    conv5 = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_first')(up2)
-    conv5 = Dropout(0.2)(conv5)
-    conv5 = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_first')(conv5)
+    conv3 = Conv2D(16, (3, 3), activation='relu', padding='same', data_format='channels_first')(conv3)
 
     # Final layers
-    conv6 = Conv2D(2, (1, 1), activation='relu', padding='same', data_format='channels_first')(conv5)
-    conv6 = core.Reshape((2, patch_height * patch_width))(conv6)
-    conv6 = core.Permute((2, 1))(conv6)
+    conv4 = Conv2D(2, (1, 1), activation='relu', padding='same', data_format='channels_first')(conv3)
+    conv4 = core.Reshape((2, patch_height * patch_width))(conv4)
+    conv4 = core.Permute((2, 1))(conv4)
 
-    conv7 = core.Activation('softmax')(conv6)
+    conv5 = core.Activation('softmax')(conv4)
 
-    model = Model(inputs=inputs, outputs=conv7)
+    model = Model(inputs=inputs, outputs=conv5)
 
     # Compile model
     model.compile(optimizer='sgd', loss='categorical_crossentropy', metrics=['accuracy'])
 
     return model
+
+
+# def get_unet(n_ch, patch_height, patch_width):
+#     inputs = Input(shape=(n_ch, patch_height, patch_width))
+#
+#     # Encoding path
+#     conv1 = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_first')(inputs)
+#     conv1 = Dropout(0.2)(conv1)
+#     conv1 = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_first')(conv1)
+#     pool1 = MaxPooling2D((2, 2), data_format='channels_first')(conv1)
+#
+#     conv2 = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_first')(pool1)
+#     conv2 = Dropout(0.2)(conv2)
+#     conv2 = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_first')(conv2)
+#     pool2 = MaxPooling2D((2, 2), data_format='channels_first')(conv2)
+#
+#     conv3 = Conv2D(128, (3, 3), activation='relu', padding='same', data_format='channels_first')(pool2)
+#     conv3 = Dropout(0.2)(conv3)
+#     conv3 = Conv2D(128, (3, 3), activation='relu', padding='same', data_format='channels_first')(conv3)
+#
+#     # Decoding path
+#     up1 = UpSampling2D(size=(2, 2), data_format='channels_first')(conv3)
+#     up1 = concatenate([conv2, up1], axis=1)  # axis=1 for 'channels_first'
+#     conv4 = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_first')(up1)
+#     conv4 = Dropout(0.2)(conv4)
+#     conv4 = Conv2D(64, (3, 3), activation='relu', padding='same', data_format='channels_first')(conv4)
+#
+#     up2 = UpSampling2D(size=(2, 2), data_format='channels_first')(conv4)
+#     up2 = concatenate([conv1, up2], axis=1)  # axis=1 for 'channels_first'
+#     conv5 = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_first')(up2)
+#     conv5 = Dropout(0.2)(conv5)
+#     conv5 = Conv2D(32, (3, 3), activation='relu', padding='same', data_format='channels_first')(conv5)
+#
+#     # Final layers
+#     conv6 = Conv2D(2, (1, 1), activation='relu', padding='same', data_format='channels_first')(conv5)
+#     conv6 = core.Reshape((2, patch_height * patch_width))(conv6)
+#     conv6 = core.Permute((2, 1))(conv6)
+#
+#     conv7 = core.Activation('softmax')(conv6)
+#
+#     model = Model(inputs=inputs, outputs=conv7)
+#
+#     # Compile model
+#     model.compile(optimizer='sgd', loss='categorical_crossentropy', metrics=['accuracy'])
+#
+#     return model
 
 
 # ========= Load settings from Config file
@@ -109,7 +143,8 @@ visualize(group_images(patches_masks_train[0:N_sample, :, :, :], 5),
 n_ch = patches_imgs_train.shape[1]
 patch_height = patches_imgs_train.shape[2]
 patch_width = patches_imgs_train.shape[3]
-model = get_unet(n_ch, patch_height, patch_width)  # the U-net model
+# model = get_unet(n_ch, patch_height, patch_width)  # the U-net model
+model = get_unet_smaller(n_ch, patch_height, patch_width)  # the U-net model
 print("Check: final output of the network:")
 print(model.output_shape)
 plot(model, to_file='./' + name_experiment + '/' + name_experiment + '_model.png')  # check how the model looks like

@@ -15,8 +15,8 @@ name = test_chase
 
 [data attributes]
 #Dimensions of the patches extracted from the full images
-patch_height = 48
-patch_width = 48
+patch_height = 32
+patch_width = 32
 
 
 [training settings]
