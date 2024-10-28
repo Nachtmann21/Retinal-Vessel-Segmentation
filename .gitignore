@@ -1,4 +1,6 @@
 .idea
 CHASE_datasets_training_testing
 AFIO
-test_chase
+/test_chase/
+test_chase\
+/test_chase
