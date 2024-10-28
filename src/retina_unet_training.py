@@ -116,7 +116,7 @@ plot(model, to_file='./' + name_experiment + '/' + name_experiment + '_model.png
 json_string = model.to_json()
 open('./' + name_experiment + '/' + name_experiment + '_architecture.json', 'w').write(json_string)
 
-# ============  Training ==================================
+    # ============  Training ==================================
 checkpointer = ModelCheckpoint(filepath='./' + name_experiment + '/' + name_experiment + '_best_weights.h5', verbose=1,
                                monitor='val_loss', mode='auto',
                                save_best_only=True)  # save at each epoch if the validation decreased

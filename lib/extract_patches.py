@@ -1,7 +1,7 @@
 import random
 import numpy as np
 from help_functions import load_hdf5
-from pre_processing import my_PreProc
+from pre_processing import my_pre_proc
 
 
 # To select the same images
@@ -18,7 +18,7 @@ def get_data_training(chase_train_imgs_original,
     train_masks = load_hdf5(chase_train_groudTruth)  # masks always the same
     # visualize(group_images(train_imgs_original[0:20,:,:,:],5),'imgs_train')#.show()  #check original imgs train
 
-    train_imgs = my_PreProc(train_imgs_original)
+    train_imgs = my_pre_proc(train_imgs_original)
     train_masks = train_masks / 255.
 
     train_imgs = train_imgs[:, :, 9:574, :]  # cut bottom and top so now it is 565*565
@@ -58,7 +58,7 @@ def get_data_training_rotate(train_imgs_original,
     train_masks = load_hdf5(train_groudTruth)  # masks always the same
     # visualize(group_images(train_imgs_original[0:20,:,:,:],5),'imgs_train')#.show()  #check original imgs train
 
-    train_imgs = my_PreProc(train_imgs_original)
+    train_imgs = my_pre_proc(train_imgs_original)
     train_masks = train_masks / 255.
 
     if dataset == 'DRIVE':
@@ -156,7 +156,7 @@ def get_data_testing(chase_test_imgs_original, chase_test_groudTruth, Imgs_to_te
     test_imgs_original = load_hdf5(chase_test_imgs_original)
     test_masks = load_hdf5(chase_test_groudTruth)
 
-    test_imgs = my_PreProc(test_imgs_original)
+    test_imgs = my_pre_proc(test_imgs_original)
     test_masks = test_masks / 255.
 
     # extend both images and masks, so they can be divided exactly by the patches dimensions
@@ -196,7 +196,7 @@ def get_data_testing_overlap(chase_test_imgs_original, chase_test_groudTruth, Im
     test_imgs_original = load_hdf5(chase_test_imgs_original)
     test_masks = load_hdf5(chase_test_groudTruth)
 
-    test_imgs = my_PreProc(test_imgs_original)
+    test_imgs = my_pre_proc(test_imgs_original)
     test_masks = test_masks / 255.
     # extend both images and masks, so they can be divided exactly by the patches dimensions
     test_imgs = test_imgs[0:Imgs_to_test, :, :, :]

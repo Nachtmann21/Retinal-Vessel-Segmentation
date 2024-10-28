@@ -35,25 +35,9 @@ from extract_patches import pred_only_FOV
 from extract_patches import get_data_testing
 from extract_patches import get_data_testing_overlap
 # pre_processing.py
-from pre_processing import my_PreProc
+from pre_processing import my_pre_proc
 
 import tensorflow as tf
-
-# from tensorflow.keras.mixed_precision import set_global_policy
-# set_global_policy('mixed_float16')
-#
-# # from nn_models_v2 import get_unet
-# os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
-# os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
-# print("TF_GPU_ALLOCATOR =", os.getenv("TF_GPU_ALLOCATOR"))
-#
-# import tensorflow as tf
-#
-# gpus = tf.config.experimental.list_physical_devices('GPU')
-# if gpus:
-#     tf.config.experimental.set_virtual_device_configuration(
-#         gpus[0],
-#         [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=6000)])
 
 config_name = None
 if len(sys.argv) == 2:
@@ -172,7 +156,7 @@ orig_imgs = None
 gtruth_masks = None
 if average_mode == True:
     pred_imgs = recompone_overlap(pred_patches, new_height, new_width, stride_height, stride_width)  # predictions
-    orig_imgs = my_PreProc(test_imgs_orig[0:pred_imgs.shape[0], :, :, :])  # originals
+    orig_imgs = my_pre_proc(test_imgs_orig[0:pred_imgs.shape[0], :, :, :])  # originals
     gtruth_masks = masks_test  # ground truth masks
 else:
     N_w = math.ceil(width / patch_width)  # 15
@@ -314,7 +298,7 @@ if float(confusion[1, 1] + confusion[0, 1]) != 0:
     precision = float(confusion[1, 1]) / float(confusion[1, 1] + confusion[0, 1])
 print("Precision: " + str(precision))
 
-# Jaccard similarity index
+# Jaccard similarity index / IoU
 jaccard_index = jaccard_score(y_true, y_pred)
 print("\nJaccard similarity score: " + str(jaccard_index))
 

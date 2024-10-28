@@ -13,7 +13,7 @@ from help_functions import *
 
 
 # My pre-processing (use for both training and testing!)
-def my_PreProc(data):
+def my_pre_proc(data):
     assert (len(data.shape) == 4)
     assert (data.shape[1] == 3)  # Use the original images
     # black-white conversion
@@ -57,7 +57,7 @@ def clahe_equalized(imgs):
 def dataset_normalized(imgs):
     assert (len(imgs.shape) == 4)  # 4D arrays
     assert (imgs.shape[1] == 1)  # check the channel is 1
-    imgs_normalized = np.empty(imgs.shape)
+    np.empty(imgs.shape)
     imgs_std = np.std(imgs)
     imgs_mean = np.mean(imgs)
     imgs_normalized = (imgs - imgs_mean) / imgs_std
@@ -72,8 +72,8 @@ def adjust_gamma(imgs, gamma=1.0):
     assert (imgs.shape[1] == 1)  # check the channel is 1
     # build a lookup table mapping the pixel values [0, 255] to
     # their adjusted gamma values
-    invGamma = 1.0 / gamma
-    table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+    inv_gamma = 1.0 / gamma
+    table = np.array([((i / 255.0) ** inv_gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
     # apply gamma correction using the lookup table
     new_imgs = np.empty(imgs.shape)
     for i in range(imgs.shape[0]):

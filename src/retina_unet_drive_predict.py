@@ -34,7 +34,7 @@ from extract_patches import pred_only_FOV
 from extract_patches import get_data_testing
 from extract_patches import get_data_testing_overlap
 # pre_processing.py
-from pre_processing import my_PreProc
+from pre_processing import my_pre_proc
 # from nn_models_v2 import get_unet
 
 config_name = None
@@ -156,7 +156,7 @@ orig_imgs = None
 gtruth_masks = None
 if average_mode == True:
     pred_imgs = recompone_overlap(pred_patches, new_height, new_width, stride_height, stride_width)  # predictions
-    orig_imgs = my_PreProc(test_imgs_orig[0:pred_imgs.shape[0],:,:,:])    # originals
+    orig_imgs = my_pre_proc(test_imgs_orig[0:pred_imgs.shape[0], :, :, :])    # originals
     gtruth_masks = masks_test  # ground truth masks
 else:
     N_w = math.ceil(width / patch_width)  # 15
