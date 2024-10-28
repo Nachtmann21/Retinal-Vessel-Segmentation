@@ -223,6 +223,26 @@ def get_data_testing_overlap(chase_test_imgs_original, chase_test_groudTruth, Im
 
     return patches_imgs_test, test_imgs.shape[2], test_imgs.shape[3], test_masks
 
+def get_data_testing_overlap_direct(test_imgs, patch_height, patch_width, stride_height, stride_width):
+    # Directly use the test_imgs array without loading from HDF5
+    # Apply preprocessing and patch extraction
+    test_imgs = paint_border_overlap(test_imgs, patch_height, patch_width, stride_height, stride_width)
+
+    # Log details about the test images
+    print("\ntest images shape:")
+    print(test_imgs.shape)
+    print("test images range (min-max): " + str(np.min(test_imgs)) + ' - ' + str(np.max(test_imgs)))
+
+    # Extract the TEST patches from the full images
+    patches_imgs_test = extract_ordered_overlap(test_imgs, patch_height, patch_width, stride_height, stride_width)
+
+    print("\ntest PATCHES images shape:")
+    print(patches_imgs_test.shape)
+    print("test PATCHES images range (min-max): " + str(np.min(patches_imgs_test)) + ' - ' + str(np.max(patches_imgs_test)))
+
+    return patches_imgs_test, test_imgs.shape[2], test_imgs.shape[3]
+
+
 
 # data consinstency check
 def data_consistency_check(imgs, masks):

@@ -1,0 +1,20 @@
+[data paths]
+path_local = ./AFIO/
+dataset_name = AFIO
+
+[experiment name]
+name = test_afio
+
+[data attributes]
+patch_height = 48
+patch_width = 48
+
+[testing settings]
+full_images_to_test = 5
+N_group_visual = 1
+average_mode = True
+stride_height = 8
+stride_width = 8
+best_last = best
+#if running with nohup
+nohup = False

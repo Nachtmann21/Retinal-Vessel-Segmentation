@@ -15,7 +15,8 @@ from help_functions import *
 # My pre-processing (use for both training and testing!)
 def my_pre_proc(data):
     assert (len(data.shape) == 4)
-    assert (data.shape[1] == 3)  # Use the original images
+    print("Data shape: ", data.shape)
+    assert (data.shape[1] == 3)
     # black-white conversion
     train_imgs = rgb2gray(data)
     # my preprocessing:

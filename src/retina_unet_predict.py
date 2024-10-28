@@ -94,6 +94,7 @@ elif dataset_name == 'STARE':
 else:
     width = 999
     height = 960
+
 print("Dataset:", dataset_name)
 
 # #ground truth
@@ -139,7 +140,7 @@ model = model_from_json(open(path_experiment + name_experiment + '_architecture.
 model.load_weights(path_experiment + name_experiment + '_' + best_last + '_weights.h5')
 start = time.time()  # start timing for inference
 # Calculate the predictions
-predictions = model.predict(patches_imgs_test, batch_size=8, verbose=2)
+predictions = model.predict(patches_imgs_test, batch_size=32, verbose=2)
 end = time.time()
 print("Inference time (in sed): ", end - start)
 # exit(0)
