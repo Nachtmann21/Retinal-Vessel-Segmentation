@@ -49,9 +49,12 @@ def build_siamese_model(input_shape=(224, 224, 3)):
     embedding_negative = embedding_model(input_negative)
 
     # Stack embeddings for loss calculation
-    stacked_embeddings = Lambda(lambda x: K.stack(x, axis=1))(
-        [embedding_anchor, embedding_positive, embedding_negative]
-    )
+    # stacked_embeddings = Lambda(lambda x: K.stack(x, axis=1))(
+    #     [embedding_anchor, embedding_positive, embedding_negative]
+    # )
+    stacked_embeddings = Lambda(
+        lambda x: K.stack([x[0], x[1], x[2]], axis=1)
+    )([embedding_anchor, embedding_positive, embedding_negative])
 
     # Build final Siamese model
     siamese_model = Model(
