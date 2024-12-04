@@ -72,6 +72,11 @@ def preprocess_data():
     images, labels, label_mapping = load_images_and_labels(person_images, IMG_SIZE)
     print(f"Loaded {len(images)} images and {len(label_mapping)} classes.")
 
+    # Print some sample image paths and labels
+    print("\nSample image paths and their labels:")
+    for person_id, file_paths in list(person_images.items())[:5]:  # Print only 5 persons
+        print(f"Person ID {person_id}: {file_paths[:2]} (showing 2 images)")
+
     # Normalize images
     images = images / 255.0  # Scale pixel values to [0, 1]
 
@@ -83,7 +88,14 @@ def preprocess_data():
         images, labels, test_size=0.2, random_state=42, stratify=labels
     )
 
-    print(f"Training set: {X_train.shape}, Validation set: {X_val.shape}")
+    # Print more information about the dataset split
+    print("\nDataset Split Summary:")
+    print(f"Training set size: {X_train.shape[0]} images")
+    print(f"Validation set size: {X_val.shape[0]} images")
+    print(f"Image shape: {X_train[0].shape}")
+    print(f"Number of classes: {NUM_CLASSES}")
+    print(f"Label example (one-hot encoded): {y_train[0]}")
+
     return X_train, X_val, y_train, y_val
 
 
@@ -91,4 +103,4 @@ if __name__ == "__main__":
     # Run preprocessing and print data shapes
     X_train, X_val, y_train, y_val = preprocess_data()
     if X_train is not None:
-        print("Data preprocessing completed.")
+        print("\nData preprocessing completed successfully!")
