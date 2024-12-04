@@ -13,18 +13,21 @@ from pre_processing import my_pre_proc
 
 # Experiment details
 name_experiment = 'test_afio'
-path_experiment = '../' + name_experiment + '/'
+path_experiment = './' + name_experiment + '/'
 if not os.path.exists(path_experiment):
     os.makedirs(path_experiment)
 
 # Dataset setup
-path_data = '../AFIO/'  # Path to your AFIO dataset
+path_data = './AFIO/'  # Path to your AFIO dataset
 
 # List of image IDs for testing
 img_ids = ['IM000001', 'IM000004', 'IM000023', 'IM000024', 'IM000135']
 test_imgs_original = [f"{path_data}{img_id}/{img_id}.JPG" for img_id in img_ids]
 test_masks_original = [f"{path_data}{img_id}/mask.jpg" for img_id in img_ids]  # Mask files
 
+
+# for debug purposes, print the mask path
+print(f"Mask paths: {test_masks_original}")
 
 # Preprocessing images without resizing
 def preprocess_images_full_size(img_paths):

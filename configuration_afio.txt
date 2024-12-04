@@ -13,8 +13,9 @@ patch_width = 48
 full_images_to_test = 5
 N_group_visual = 1
 average_mode = True
-stride_height = 8
-stride_width = 8
+# str. height 4, 7, 8, ...
+stride_height = 7
+stride_width = 7
 best_last = best
 #if running with nohup
 nohup = False
