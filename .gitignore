@@ -7,6 +7,6 @@ AFIO
 Classification/siamese_model.h5
 Classification/embedding_model.h5
 /Classification/RIDB_SEGM
-/Classification/__pycache__
+/Classification/__pycache__/*
 /Classification/__pycache__
 /Classification/siamese_model
