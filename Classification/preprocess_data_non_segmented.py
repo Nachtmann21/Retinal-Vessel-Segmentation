@@ -55,7 +55,7 @@ def load_images_and_labels(person_images, img_size):
     return np.array(images), np.array(labels), label_mapping
 
 
-def preprocess_data():
+def preprocess_data_non_segmented():
     """
     Preprocess the images and labels for training and validation.
     """
@@ -101,6 +101,6 @@ def preprocess_data():
 
 if __name__ == "__main__":
     # Run preprocessing and print data shapes
-    X_train, X_val, y_train, y_val = preprocess_data()
+    X_train, X_val, y_train, y_val = preprocess_data_non_segmented()
     if X_train is not None:
         print("\nData preprocessing completed successfully!")
