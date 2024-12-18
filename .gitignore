@@ -7,3 +7,5 @@ AFIO
 /test_chase_backup
 Classification/siamese_model.h5
 Classification/embedding_model.h5
+/Classification/RIDB_SEGM
+/Classification/RIDB_SEGM
