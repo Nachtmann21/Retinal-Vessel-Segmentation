@@ -21,16 +21,19 @@ def apply_skeletonization(img):
     return skeleton.astype(np.uint8)
 
 
-# Bifurcation & Minutiae Detection
-def detect_bifurcations(img, color, point_size=3):
+# Bifurcation Detection
+def detect_bifurcations(img, color, point_size=3, include_skeleton=False):
     skeleton = apply_skeletonization(img)
     bifurcation_points = feature.corner_harris(skeleton, method='k', sigma=1)
     bifurcation_points = (bifurcation_points > 0.01 * bifurcation_points.max()) * 255
 
-    result = cv2.cvtColor(skeleton, cv2.COLOR_GRAY2BGR)
+    # Create an empty image if skeleton is NOT included
+    result = cv2.cvtColor(skeleton, cv2.COLOR_GRAY2BGR) if include_skeleton else np.zeros_like(img)
+    result = cv2.cvtColor(result, cv2.COLOR_GRAY2BGR)
+
     y, x = np.where(bifurcation_points > 0)
     for i in range(len(x)):
-        size = point_size - (i % 2)  # Adjust size for Z-axis effect
+        size = point_size - (i % 2)
         cv2.circle(result, (x[i], y[i]), size, color, -1)
     return result
 
@@ -55,20 +58,19 @@ app.layout = html.Div([
     html.H1("Retina Blood Vessel Analysis", style={'textAlign': 'center'}),
 
     html.Div([
-        html.Div([
-            html.H3("Binary Image"),
-            html.Img(id='original-binary', src=encode_image(load_image(BINARY_IMAGE_PATH)),
-                     style={'width': '40%', 'display': 'inline-block'}),
-            html.Img(id='processed-binary', src=encode_image(load_image(BINARY_IMAGE_PATH)),
-                     style={'width': '40%', 'display': 'inline-block'})
-        ]),
-        html.Div([
-            html.H3("Grayscale Image"),
-            html.Img(id='original-grayscale', src=encode_image(load_image(GRAYSCALE_IMAGE_PATH)),
-                     style={'width': '40%', 'display': 'inline-block'}),
-            html.Img(id='processed-grayscale', src=encode_image(load_image(GRAYSCALE_IMAGE_PATH)),
-                     style={'width': '40%', 'display': 'inline-block'})
-        ])
+        html.H3("Binary Image"),
+        html.Img(id='original-binary', src=encode_image(load_image(BINARY_IMAGE_PATH)),
+                 style={'width': '40%', 'display': 'inline-block'}),
+        html.Img(id='processed-binary', src=encode_image(load_image(BINARY_IMAGE_PATH)),
+                 style={'width': '40%', 'display': 'inline-block'})
+    ]),
+
+    html.Div([
+        html.H3("Grayscale Image"),
+        html.Img(id='original-grayscale', src=encode_image(load_image(GRAYSCALE_IMAGE_PATH)),
+                 style={'width': '40%', 'display': 'inline-block'}),
+        html.Img(id='processed-grayscale', src=encode_image(load_image(GRAYSCALE_IMAGE_PATH)),
+                 style={'width': '40%', 'display': 'inline-block'})
     ]),
 
     html.Div([
@@ -80,12 +82,12 @@ app.layout = html.Div([
     html.Button('Skeletonize', id='skeleton-btn', n_clicks=0),
     html.Button('Detect Bifurcations', id='bifurcation-btn', n_clicks=0),
     html.Button('Overlay Both', id='overlay-btn', n_clicks=0),
-    html.Button('Download Overlay Images', id='download-btn', n_clicks=0),
+    html.Button('Download Overlay Image', id='download-btn', n_clicks=0),
     dcc.Download(id='download-image')
 ])
 
 
-# Callbacks
+# Callback to update images
 @app.callback(
     [Output('processed-binary', 'src'), Output('processed-grayscale', 'src'),
      Output('overlay-bifurcations', 'src'), Output('overlay-skeleton-bifurcations', 'src')],
@@ -107,12 +109,13 @@ def update_images(skeleton_clicks, bifurcation_clicks, overlay_clicks):
         bin_img = apply_skeletonization(bin_img)
         gray_img = apply_skeletonization(gray_img)
     elif button_id == 'bifurcation-btn':
-        bin_img = detect_bifurcations(bin_img, (0, 255, 0))  # Green for binary
-        gray_img = detect_bifurcations(gray_img, (255, 0, 0))  # Red for grayscale
+        bin_img = detect_bifurcations(bin_img, (255, 0, 0))  # Red for binary
+        gray_img = detect_bifurcations(gray_img, (0, 0, 255))  # Blue for grayscale
     elif button_id == 'overlay-btn':
-        bin_bifurcations = detect_bifurcations(bin_img, (0, 255, 0))
-        gray_bifurcations = detect_bifurcations(gray_img, (255, 0, 0))
+        bin_bifurcations = detect_bifurcations(bin_img, (255, 0, 0))  # Red bifurcations
+        gray_bifurcations = detect_bifurcations(gray_img, (0, 0, 255))  # Blue bifurcations
         overlay_bifurcations = cv2.addWeighted(bin_bifurcations, 0.5, gray_bifurcations, 0.5, 0)
+
         skeleton_three_channel = cv2.cvtColor(apply_skeletonization(bin_img), cv2.COLOR_GRAY2BGR)
         overlay_skeleton_bifurcations = cv2.addWeighted(skeleton_three_channel, 0.5, overlay_bifurcations, 0.5, 0)
 
@@ -120,19 +123,16 @@ def update_images(skeleton_clicks, bifurcation_clicks, overlay_clicks):
         overlay_skeleton_bifurcations)
 
 
+# Callback for downloading the second overlayed image
 @app.callback(
     Output('download-image', 'data'),
     Input('download-btn', 'n_clicks'),
-    [State('overlay-bifurcations', 'src'), State('overlay-skeleton-bifurcations', 'src')],
+    State('overlay-skeleton-bifurcations', 'src'),
     prevent_initial_call=True
 )
-def download_overlay_images(n_clicks, overlay_bifurcations_src, overlay_skeleton_bifurcations_src):
-    overlay_bifurcations_data = base64.b64decode(overlay_bifurcations_src.split(',')[1])
+def download_overlay_image(n_clicks, overlay_skeleton_bifurcations_src):
     overlay_skeleton_bifurcations_data = base64.b64decode(overlay_skeleton_bifurcations_src.split(',')[1])
-    return [
-        dcc.send_bytes(overlay_bifurcations_data, "overlay_bifurcations.png"),
-        dcc.send_bytes(overlay_skeleton_bifurcations_data, "overlay_skeleton_bifurcations.png")
-    ]
+    return dcc.send_bytes(overlay_skeleton_bifurcations_data, "overlay_skeleton_bifurcations.png")
 
 
 # Run Server

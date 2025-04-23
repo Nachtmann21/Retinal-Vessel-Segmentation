@@ -11,3 +11,5 @@ Classification/embedding_model.h5
 /Classification/siamese_model
 /SuperRetina
 /UserValidation/Drive Segmented
+test.py
+lwnet/
