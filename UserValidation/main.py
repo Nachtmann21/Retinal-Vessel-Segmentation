@@ -6,11 +6,12 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, Model
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import roc_curve, auc, confusion_matrix, ConfusionMatrixDisplay
 
 root_dir = 'Drive Segmented'
 # mixed_precision.set_global_policy('mixed_float16')
-BATCH_SIZE = 64
+BATCH_SIZE = 16
+NUM_EPOCHS = 200
 
 class DeviceCheckCallback(tf.keras.callbacks.Callback):
     def on_train_begin(self, logs=None):
@@ -20,6 +21,45 @@ class DeviceCheckCallback(tf.keras.callbacks.Callback):
             print(f"✅  Training running on GPU: {gpus[0].name}")
         else:
             print("⚠️  No GPU found — training on CPU.")
+
+def get_test_pairs(n=500):
+    """
+    Sample n random same/different pairs, run them through the Siamese model,
+    and return two numpy arrays: distances and binary labels.
+    """
+    dists = []
+    labs = []
+
+    for _ in range(n):
+        # 50/50 same vs diff
+        same_flag = random.random() < 0.5
+        imgA, imgB, lbl_str = sample_pair(same_flag)
+
+        # PIL → numpy [0,1]
+        arrA = np.array(imgA, dtype=np.float32) / 255.0
+        arrB = np.array(imgB, dtype=np.float32) / 255.0
+
+        # add channel dim → shape (H,W,1)
+        arrA = np.expand_dims(arrA, axis=-1)
+        arrB = np.expand_dims(arrB, axis=-1)
+
+        # numpy → tf.Tensor, then resize to (IMG_SIZE,IMG_SIZE,1)
+        tA = tf.convert_to_tensor(arrA)
+        tB = tf.convert_to_tensor(arrB)
+        tA = tf.image.resize(tA, [IMG_SIZE, IMG_SIZE])
+        tB = tf.image.resize(tB, [IMG_SIZE, IMG_SIZE])
+
+        # add batch axis → shape (1,IMG_SIZE,IMG_SIZE,1)
+        batchA = tf.expand_dims(tA, 0)
+        batchB = tf.expand_dims(tB, 0)
+
+        # run through Siamese → get a scalar distance
+        dist = siamese_model.predict([batchA, batchB], verbose=0)[0, 0]
+
+        dists.append(dist)
+        labs.append(1 if lbl_str == 'SAME' else 0)
+
+    return np.array(dists), np.array(labs)
 
 persons = [
     d for d in os.listdir(root_dir)
@@ -192,16 +232,6 @@ siamese_model.compile(
     loss=contrastive_loss
 )
 
-# Should see loss steadily decrease. If it stalls or oscillates try:
-# - Lower the learning rate (Adam(1e-5))
-# - Switch to Triplet Semi-Hard Loss
-
-# import tensorflow_addons as tfa
-# siamese_model.compile(
-#     optimizer='adam',
-#     loss=tfa.losses.TripletSemiHardLoss()
-# )
-
 # val split of 50 batches:
 val_ds = train_ds.take(50)
 train_only_ds = train_ds.skip(50)
@@ -228,21 +258,16 @@ callbacks = [
 # *********** TRAINING ***********
 history = siamese_model.fit(
     train_only_ds,
-    epochs=50,
-    steps_per_epoch=200,
+    epochs=NUM_EPOCHS,
+    steps_per_epoch = 50,
+    # steps_per_epoch = total_pairs // BATCH_SIZE
     validation_data=val_ds,
     validation_steps=50,
     callbacks=callbacks
 )
 
-# history = siamese_model.fit(
-#     train_ds,
-#     epochs=20,
-#     steps_per_epoch=200
-# )
-
-# 6) Evaluate the model ———————————————————————————————————————————————————————————————————————————————————————————————
-plt.plot(history.history['loss'], label='train loss')
+# ——— 6) Plot train/val loss ———
+plt.plot(history.history['loss'],      label='train loss')
 if 'val_loss' in history.history:
     plt.plot(history.history['val_loss'], label='val loss')
 plt.xlabel('Epoch')
@@ -250,61 +275,36 @@ plt.ylabel('Contrastive Loss')
 plt.legend()
 plt.show()
 
-# 7) ROC & AUC on held-out pairs
-def get_test_pairs(n=500):
-    """
-    Sample n random same/different pairs, run them through the Siamese model,
-    and return two numpy arrays: distances and binary labels.
-    """
-    dists = []
-    labs = []
-
-    for _ in range(n):
-        # 50/50 same vs diff
-        same_flag = random.random() < 0.5
-        imgA, imgB, lbl_str = sample_pair(same_flag)
-
-        # PIL → numpy [0,1]
-        arrA = np.array(imgA, dtype=np.float32) / 255.0
-        arrB = np.array(imgB, dtype=np.float32) / 255.0
-
-        # add channel dim → shape (H,W,1)
-        arrA = np.expand_dims(arrA, axis=-1)
-        arrB = np.expand_dims(arrB, axis=-1)
-
-        # numpy → tf.Tensor, then resize to (IMG_SIZE,IMG_SIZE,1)
-        tA = tf.convert_to_tensor(arrA)
-        tB = tf.convert_to_tensor(arrB)
-        tA = tf.image.resize(tA, [IMG_SIZE, IMG_SIZE])
-        tB = tf.image.resize(tB, [IMG_SIZE, IMG_SIZE])
-
-        # add batch axis → shape (1,IMG_SIZE,IMG_SIZE,1)
-        batchA = tf.expand_dims(tA, 0)
-        batchB = tf.expand_dims(tB, 0)
-
-        # run through Siamese → get a scalar distance
-        dist = siamese_model.predict([batchA, batchB], verbose=0)[0, 0]
-
-        dists.append(dist)
-        labs.append(1 if lbl_str == 'SAME' else 0)
-
-    return np.array(dists), np.array(labs)
-
-dists, labs = get_test_pairs(500) # ???????????????
+# ——— 7) ROC & Threshold Selection ———
+dists, labs = get_test_pairs(500)
 fpr, tpr, thresholds = roc_curve(labs, -dists)
 roc_auc = auc(fpr, tpr)
 
-plt.plot(fpr, tpr, label=f"AUC={roc_auc:.2f}")
+plt.figure(figsize=(6,6))
+plt.plot(fpr, tpr, label=f"AUC = {roc_auc:.2f}")
 plt.plot([0,1], [0,1], '--', color='gray')
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('ROC Curve')
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title("ROC Curve")
 plt.legend()
 plt.show()
 
-# Pick your operating point (e.g. 95% TPR)
 idx = np.argmax(tpr >= 0.95)
-threshold_95 = thresholds[idx]
-print(f"Threshold at 95% TPR: {threshold_95:.3f}")
+score_thr = thresholds[idx]   # threshold on -dists
+dist_thr  = -score_thr        # convert back to threshold on dists
+print(f"AUC = {roc_auc:.3f}")
+print(f"Distance threshold for 95% TPR: {dist_thr:.3f}")
 
+# ——— 8) Save your trained models ———
+siamese_model.save("siamese_model.h5")
+embed_net.save("embed_net.h5")
+print("✅ Saved siamese_model.h5 and embed_net.h5")
+
+# ——— 9) Confusion matrix at your chosen threshold ———
+y_pred = (dists < dist_thr).astype(int)
+cm = confusion_matrix(labs, y_pred, labels=[0,1])
+disp = ConfusionMatrixDisplay(cm, display_labels=["DIFF","SAME"])
+disp.plot(cmap="Blues", values_format='d')
+plt.title(f"Confusion Matrix @ dist_thr={dist_thr:.3f}")
+plt.show()
 

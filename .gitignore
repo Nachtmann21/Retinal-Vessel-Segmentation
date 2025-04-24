@@ -13,3 +13,4 @@ Classification/embedding_model.h5
 /UserValidation/Drive Segmented
 test.py
 lwnet/
+/UserValidation/logs
