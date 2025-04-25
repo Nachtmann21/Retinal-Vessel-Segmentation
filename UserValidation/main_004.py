@@ -137,12 +137,18 @@ cb = [
 ]
 
 siamese.summary()
-history = siamese.fit(
-    train_ds,
-    validation_data=val_ds,
-    epochs=EPOCHS,
-    callbacks=cb
-)
+try:
+    history = siamese.fit(
+        train_ds,
+        validation_data=val_ds,
+        epochs=EPOCHS,
+        callbacks=cb
+    )
+except KeyboardInterrupt:
+    print("Training interrupted: saving current weights…")
+    siamese.save('interrupted_siamese.h5')
+    raise
+
 
 # plot losses
 plt.plot(history.history['loss'], label='train')
